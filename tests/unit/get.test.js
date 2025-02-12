@@ -1,10 +1,13 @@
 // tests/unit/get.test.js
 
 const request = require('supertest');
-
+const { writeFragment, writeFragmentData } = require('../../src/model/data/memory');
 const app = require('../../src/app');
+const hash = require('../../src/hash');
+const { Fragment } = require('../../src/model/fragment');
 
 describe('GET /v1/fragments', () => {
+  const validUser = { email: 'user1@email.com', password: 'password1' };
   // If the request is missing the Authorization header, it should be forbidden
   test('unauthenticated requests are denied', () => request(app).get('/v1/fragments').expect(401));
   // If the wrong username/password pair are used (no such user), it should be forbidden
@@ -19,5 +22,77 @@ describe('GET /v1/fragments', () => {
     expect(Array.isArray(res.body.fragments)).toBe(true);
   });
 
-  // TODO: we'll need to add tests to check the contents of the fragments array later
+  // If the user has no fragments, the response should contain an empty array
+  test('authenticated users with no fragments should get an empty array', async () => {
+    // Assuming no fragments exist for the valid user
+    const res = await request(app).get('/v1/fragments').auth(validUser.email, validUser.password);
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.fragments).toEqual([]); // Empty array when no fragments exist
+  });
+
+  // Validate the structure of the fragments array (this assumes fragments have properties like `id` and `type`)
+  test('fragments should have the correct structure', async () => {
+    const res = await request(app).get('/v1/fragments').auth(validUser.email, validUser.password);
+
+    expect(res.statusCode).toBe(200);
+    expect(Array.isArray(res.body.fragments)).toBe(true);
+
+    if (res.body.fragments.length > 0) {
+      res.body.fragments.forEach((fragment) => {
+        expect(fragment).toHaveProperty('id');
+        expect(fragment).toHaveProperty('type');
+        expect(fragment.type).toBe('text/plain'); // Assuming all fragments are of type text/plain
+      });
+    }
+  });
+});
+describe('GET /v1/fragments/:id', () => {
+  const validUser = { email: 'user1@email.com', password: 'password1' };
+  const fragmentId = '123';
+  const ownerId = 'user123';
+  const fragmentData = { id: fragmentId, ownerId, type: 'text/plain', size: 100 };
+  const fragmentBuffer = Buffer.from('This is test fragment data');
+
+  beforeEach(async () => {
+    // Ensure fresh state for each test
+    await writeFragment(fragmentData);
+    await writeFragmentData(ownerId, fragmentId, fragmentBuffer);
+  });
+
+  // If the request is missing the Authorization header, it should be forbidden
+  test('unauthenticated requests are denied', () =>
+    request(app).get(`/v1/fragments/${fragmentId}`).expect(401));
+  test('incorrect credentials are denied', () =>
+    request(app)
+      .get(`/v1/fragments/${fragmentId}`)
+      .auth('invalid@email.com', 'incorrect_password')
+      .expect(401));
+  test('return specific fragment data without post request', async () => {
+    const ownerId = hash('user1@email.com');
+    const id = 'randomId';
+    const fragMetadata1 = new Fragment({ id: id, ownerId: ownerId, type: 'text/plain' });
+    const body = 'Fragment sample';
+    fragMetadata1.setData(body);
+    fragMetadata1.save();
+  });
+  test('authenticated user return specific fragment data', async () => {
+    const ownerId = hash('user1@email.com');
+    const id = 'randomId';
+    const fragMetadata1 = new Fragment({ id: id, ownerId: ownerId, type: 'text/plain' });
+    const body = 'Fragment sample';
+    fragMetadata1.setData(body);
+    fragMetadata1.save();
+    const res = await request(app).get(`/v1/fragments/${id}`).auth('user1@email.com', 'password1');
+    expect(res.statusCode).toBe(200);
+    expect(res.text).toBe('{"status":"ok","fragment":"Fragment sample"}');
+  });
+  test('returns 500 if there is a server error fetching the fragment', async () => {
+    const res = await request(app)
+      .get(`/v1/fragments/1234121231412`)
+      .auth(validUser.email, validUser.password);
+
+    expect(res.statusCode).toBe(500);
+    expect(res.body.error.message).toMatch('Internal Server Error');
+  });
 });
