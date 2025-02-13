@@ -30,6 +30,14 @@ describe('GET /v1/fragments', () => {
     expect(res.statusCode).toBe(200);
     expect(res.body.fragments).toEqual([]); // Empty array when no fragments exist
   });
+  test('authenticated users get an expanded fragments array', async () => {
+    const res = await request(app)
+      .get('/v1/fragments?expand=1')
+      .auth(validUser.email, validUser.password);
+    expect(res.statusCode).toBe(200);
+    expect(res.body.status).toBe('ok');
+    expect(Array.isArray(res.body.fragments)).toBe(true);
+  });
 
   // Validate the structure of the fragments array (this assumes fragments have properties like `id` and `type`)
   test('fragments should have the correct structure', async () => {
