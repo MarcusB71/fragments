@@ -18,7 +18,7 @@ enables VSCode debugger on port 9229 (test routes etc.)
 docker run --rm --name fragments --env-file env.jest -e LOG_LEVEL=debug -p 8080:8080 -d fragments:latest
 run the docker container using jest env variables
 
-docker run --rm --name fragments --env-file .env -p 8080:8080 fragments:latest
+docker run --rm --name fragments --env-file .env -p 8080:8080 -d fragments:latest
 run the docker container using .env variables
 
 docker stop fragments
