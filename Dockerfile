@@ -12,13 +12,13 @@ ENV NPM_CONFIG_LOGLEVEL=warn
 ENV NPM_CONFIG_COLOR=false
 
 # Ensures all frameworks and libraries know to turn on optimized configuration for production
-ENV NODE_ENV production
+ENV NODE_ENV=production
 
 # Use /app as our working directory
 WORKDIR /app
 
 # Copy package files first utilizing docker layer caching
-COPY --chown=node:node .package*.json ./
+COPY --chown=node:node package*.json ./
 
 # Install node dependencies defined in package-lock.json excluding dev-dependencies 
 # which arent needed in production
