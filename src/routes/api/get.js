@@ -56,7 +56,31 @@ const getFragmentById = async (req, res) => {
     res.status(500).json(createErrorResponse(500, 'Internal Server Error'));
   }
 };
+
+const getFragmentInfo = async (req, res) => {
+  const ownerId = req.user; // Authenticated user (hashed email)
+  const id = req.params.id; // Fragment ID from URL
+
+  try {
+    logger.debug(`Fetching metadata for fragment ID: ${id} for user: ${ownerId}`);
+
+    // Retrieve fragment metadata
+    const fragment = await Fragment.byId(ownerId, id);
+    if (!fragment) {
+      logger.warn(`Fragment metadata not found: ${id}`);
+      return res.status(404).json(createErrorResponse(404, 'Fragment not found'));
+    }
+
+    // Return fragment metadata
+    res.status(200).json(createSuccessResponse({ fragment }));
+  } catch (err) {
+    logger.error(`Error fetching metadata for fragment ${id} for user ${ownerId}: ${err.message}`);
+    res.status(500).json(createErrorResponse(500, 'Internal Server Error'));
+  }
+};
+
 module.exports = {
   getFragments,
   getFragmentById,
+  getFragmentInfo,
 };
