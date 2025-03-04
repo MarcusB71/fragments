@@ -26,3 +26,12 @@ docker stop pid or name will end the process
 
 docker ps
 shows docker processes currently runnning
+
+docker build -t marcusb71/fragments:lab-6 .
+builds my docker image. Only need to do this locally, then can just pull and run on EC2.
+
+docker push --all-tags marcusb71/fragments
+pushes all docker tagged images to docker hub
+
+docker pull marcusb71/fragments:lab-6
+pulls my docker image from docker hub
