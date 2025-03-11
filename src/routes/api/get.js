@@ -49,7 +49,6 @@ const getFragmentById = async (req, res) => {
     // Retrieve fragment data
     const data = await fragment.getData();
 
-    res.setHeader('Content-Type', 'text/plain');
     res.status(200).json(createSuccessResponse({ fragment: data.toString() }));
   } catch (err) {
     logger.error(`Error fetching fragment ${id} for user ${ownerId}: ${err.message}`);
