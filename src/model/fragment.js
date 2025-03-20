@@ -141,17 +141,40 @@ class Fragment {
    * @returns {Array<string>} list of supported mime types
    */
   get formats() {
-    const formatMap = {
-      'text/plain': ['text/plain'],
-      'text/markdown': ['text/markdown', 'text/html', 'application/json'],
-      'text/html': ['text/html', 'application/json'],
-      'application/json': ['application/json', 'text/html'],
-      'image/png': ['image/png'],
-      'image/jpeg': ['image/jpeg'],
-      'image/webp': ['image/webp'],
-      'image/gif': ['image/gif'],
-    };
-    return formatMap[this.mimeType] || [];
+    /**
+        Type	            Valid Conversion Extensions
+        text/plain        .txt
+        text/markdown   	.md, .html, .txt
+        text/html       	.html, .txt
+        application/json	.json, .txt
+        image/png         .png, .jpg, .webp, .gif
+        image/jpeg      	.png, .jpg, .webp, .gif
+        image/webp      	.png, .jpg, .webp, .gif
+        image/gif       	.png, .jpg, .webp, .gif
+     */
+
+    switch (this.mimeType) {
+      case 'text/plain':
+        return ['text/plain'];
+
+      case 'text/markdown':
+        return ['text/markdown', 'text/html', 'text/plain'];
+
+      case 'text/html':
+        return ['text/html', 'text/plain'];
+
+      case 'application/json':
+        return ['application/json', 'text/plain'];
+
+      case 'image/png':
+      case 'image/jpeg':
+      case 'image/webp':
+      case 'image/gif':
+        return ['image/png', 'image/jpeg', 'image/webp', 'image/gif'];
+
+      default:
+        return null;
+    }
   }
 
   /**
