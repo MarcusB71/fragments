@@ -5,7 +5,6 @@ const { createSuccessResponse, createErrorResponse } = require('../../response')
 const logger = require('../../logger');
 const MarkdownIt = require('markdown-it');
 const md = new MarkdownIt();
-const sharp = require('sharp');
 const { htmlToText } = require('html-to-text');
 
 const getFragments = async (req, res) => {
@@ -135,54 +134,6 @@ const convertData = async (data, from, to) => {
     case 'application/json':
       if (to == 'txt') {
         convertedData = JSON.parse(data.toString());
-      }
-      break;
-
-    case 'image/png':
-      if (to == 'jpg') {
-        convertedData = await sharp(data).jpeg().toBuffer();
-      }
-      if (to == 'webp') {
-        convertedData = await sharp(data).webp().toBuffer();
-      }
-      if (to == 'gif') {
-        convertedData = await sharp(data).gif().toBuffer();
-      }
-      break;
-
-    case 'image/jpeg':
-      if (to == 'png') {
-        convertedData = await sharp(data).png().toBuffer();
-      }
-      if (to == 'webp') {
-        convertedData = await sharp(data).webp().toBuffer();
-      }
-      if (to == 'gif') {
-        convertedData = await sharp(data).gif().toBuffer();
-      }
-      break;
-
-    case 'image/webp':
-      if (to == 'png') {
-        convertedData = await sharp(data).png().toBuffer();
-      }
-      if (to == 'jpg') {
-        convertedData = await sharp(data).jpeg().toBuffer();
-      }
-      if (to == 'gif') {
-        convertedData = await sharp(data).gif().toBuffer();
-      }
-      break;
-
-    case 'image/gif':
-      if (to == 'png') {
-        convertedData = await sharp(data).png().toBuffer();
-      }
-      if (to == 'jpg') {
-        convertedData = await sharp(data).jpeg().toBuffer();
-      }
-      if (to == 'webp') {
-        convertedData = await sharp(data).webp().toBuffer();
       }
       break;
   }
