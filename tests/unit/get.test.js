@@ -55,6 +55,7 @@ describe('GET /v1/fragments', () => {
     }
   });
 });
+
 describe('GET /v1/fragments/:id', () => {
   const validUser = { email: 'user1@email.com', password: 'password1' };
   const fragmentId = '123';
@@ -93,7 +94,7 @@ describe('GET /v1/fragments/:id', () => {
     fragMetadata1.save();
     const res = await request(app).get(`/v1/fragments/${id}`).auth('user1@email.com', 'password1');
     expect(res.statusCode).toBe(200);
-    expect(res.text).toBe('{"status":"ok","fragment":"Fragment sample"}');
+    expect(res.text).toBe('Fragment sample');
   });
   test('returns 500 if there is a server error fetching the fragment', async () => {
     const res = await request(app)
@@ -102,5 +103,116 @@ describe('GET /v1/fragments/:id', () => {
 
     expect(res.statusCode).toBe(500);
     expect(res.body.error.message).toMatch('Internal Server Error');
+  });
+});
+
+describe('GET /v1/fragments/:id(.ext)', () => {
+  const validUser = { email: 'user1@email.com', password: 'password1' };
+  let fragmentId;
+  // Create a markdown fragment before tests run
+  beforeAll(async () => {
+    const res = await request(app)
+      .post('/v1/fragments')
+      .auth(validUser.email, validUser.password)
+      .set('Content-Type', 'text/markdown')
+      .send('# Markdown Fragment\nThis is a test.');
+
+    fragmentId = res.body.fragment.id;
+  });
+  test('unauthenticated requests are denied', async () => {
+    const res = await request(app).get(`/v1/fragments/${fragmentId}.md`);
+    expect(res.statusCode).toBe(401);
+  });
+  test('incorrect credentials are denied', async () => {
+    const res = await request(app)
+      .get(`/v1/fragments/${fragmentId}.md`)
+      .auth('wrong@email.com', 'wrongpassword');
+    expect(res.statusCode).toBe(401);
+  });
+  test('fetch raw markdown fragment', async () => {
+    const res = await request(app)
+      .get(`/v1/fragments/${fragmentId}.md`)
+      .auth(validUser.email, validUser.password);
+
+    expect(res.statusCode).toBe(200);
+    expect(res.headers['content-type']).toContain('text/markdown');
+    expect(res.text).toContain('# Markdown Fragment');
+  });
+  test('unsupported extension returns 415', async () => {
+    const res = await request(app)
+      .get(`/v1/fragments/${fragmentId}.invalid`)
+      .auth(validUser.email, validUser.password);
+
+    expect(res.statusCode).toBe(415);
+  });
+  test('fetch fragment without extension returns raw data', async () => {
+    const res = await request(app)
+      .get(`/v1/fragments/${fragmentId}`)
+      .auth(validUser.email, validUser.password);
+
+    expect(res.statusCode).toBe(200);
+    expect(res.headers['content-type']).toContain('text/markdown');
+    expect(res.text).toContain('# Markdown Fragment');
+  });
+  test('converting: md => html', async () => {
+    const res = await request(app)
+      .get(`/v1/fragments/${fragmentId}.html`)
+      .auth(validUser.email, validUser.password);
+
+    expect(res.statusCode).toBe(200);
+    expect(res.headers['content-type']).toContain('text/html');
+    expect(res.text).toContain('<h1>Markdown Fragment</h1>');
+  });
+  test('converting: html => html', async () => {
+    const data = '<h1>This is HTML</h1>';
+
+    const postResponse = await request(app)
+      .post('/v1/fragments')
+      .auth('user1@email.com', 'password1')
+      .set('content-type', 'text/html')
+      .send(data);
+
+    const res = await request(app)
+      .get(`/v1/fragments/${postResponse.body.fragment.id}.html`)
+      .auth('user1@email.com', 'password1');
+
+    expect(res.status).toBe(200);
+    expect(res.get('Content-Type')).toContain('text/html');
+    expect(res.text).toBe('<h1>This is HTML</h1>');
+  });
+  test('converting: json => json', async () => {
+    const data = {
+      content: 'This is JSON',
+    };
+    const postResponse = await request(app)
+      .post('/v1/fragments')
+      .auth('user1@email.com', 'password1')
+      .set('content-type', 'application/json')
+      .send(data);
+    const res = await request(app)
+      .get(`/v1/fragments/${postResponse.body.fragment.id}.json`)
+      .auth('user1@email.com', 'password1');
+
+    expect(res.status).toBe(200);
+    expect(res.get('Content-Type')).toContain('application/json');
+    expect(res.body).toEqual({ content: 'This is JSON' });
+  });
+  test('converting: json => txt', async () => {
+    const data = {
+      content: 'This is JSON',
+    };
+    const postResponse = await request(app)
+      .post('/v1/fragments')
+      .auth('user1@email.com', 'password1')
+      .set('content-type', 'application/json')
+      .send(data);
+
+    const res = await request(app)
+      .get(`/v1/fragments/${postResponse.body.fragment.id}.txt`)
+      .auth('user1@email.com', 'password1');
+
+    expect(res.status).toBe(200);
+    expect(res.get('Content-Type')).toContain('text/plain');
+    expect(res.text).toBe('{"content":"This is JSON"}');
   });
 });
