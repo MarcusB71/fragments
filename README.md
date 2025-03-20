@@ -35,3 +35,9 @@ pushes all docker tagged images to docker hub
 
 docker pull marcusb71/fragments:lab-6
 pulls my docker image from docker hub
+
+curl -i -X POST -u user1@email.com:password1 -H "Content-Type: text/plain" -d "This is a fragment" http://localhost:8080/v1/fragments
+use curl to create post request and replace localhost if not local
+
+curl -i -u user1@email.com:password1 http://localhost:8080/v1/fragments
+use curl to get req fragments
