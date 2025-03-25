@@ -5,6 +5,7 @@ const { createSuccessResponse, createErrorResponse } = require('../../response')
 const logger = require('../../logger');
 const MarkdownIt = require('markdown-it');
 const md = new MarkdownIt();
+const sharp = require('sharp');
 const { htmlToText } = require('html-to-text');
 
 const getFragments = async (req, res) => {
@@ -56,7 +57,7 @@ const getFragmentById = async (req, res) => {
         return res.status(415).json(createErrorResponse(415, 'Unsupported extension'));
       }
     } else {
-      res.setHeader('Content-Type', `${fragment.mimeType}`);
+      res.setHeader('Content-Type', fragment.type);
       return res.status(200).send(data);
     }
   } catch (err) {
@@ -112,7 +113,6 @@ const getExtensionContentType = (extension) => {
 
 const convertData = async (data, from, to) => {
   let convertedData = data;
-
   switch (from) {
     case 'text/markdown':
       if (to == 'txt') {
@@ -124,16 +124,58 @@ const convertData = async (data, from, to) => {
         convertedData = md.render(data.toString());
       }
       break;
-
     case 'text/html':
       if (to == 'txt') {
         convertedData = htmlToText(data.toString(), { wordwrap: 130 });
       }
       break;
-
     case 'application/json':
       if (to == 'txt') {
         convertedData = JSON.parse(data.toString());
+      }
+      break;
+    case 'image/png':
+      if (to == 'jpg') {
+        convertedData = await sharp(data).jpeg().toBuffer();
+      }
+      if (to == 'webp') {
+        convertedData = await sharp(data).webp().toBuffer();
+      }
+      if (to == 'gif') {
+        convertedData = await sharp(data).gif().toBuffer();
+      }
+      break;
+    case 'image/jpeg':
+      if (to == 'png') {
+        convertedData = await sharp(data).png().toBuffer();
+      }
+      if (to == 'webp') {
+        convertedData = await sharp(data).webp().toBuffer();
+      }
+      if (to == 'gif') {
+        convertedData = await sharp(data).gif().toBuffer();
+      }
+      break;
+    case 'image/webp':
+      if (to == 'png') {
+        convertedData = await sharp(data).png().toBuffer();
+      }
+      if (to == 'jpg') {
+        convertedData = await sharp(data).jpeg().toBuffer();
+      }
+      if (to == 'gif') {
+        convertedData = await sharp(data).gif().toBuffer();
+      }
+      break;
+    case 'image/gif':
+      if (to == 'png') {
+        convertedData = await sharp(data).png().toBuffer();
+      }
+      if (to == 'jpg') {
+        convertedData = await sharp(data).jpeg().toBuffer();
+      }
+      if (to == 'webp') {
+        convertedData = await sharp(data).webp().toBuffer();
       }
       break;
   }
