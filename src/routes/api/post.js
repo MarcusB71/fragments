@@ -1,4 +1,3 @@
-const contentType = require('content-type');
 const logger = require('../../logger');
 const { Fragment } = require('../../model/fragment');
 const { createSuccessResponse, createErrorResponse } = require('../../response');
@@ -10,7 +9,8 @@ module.exports = async (req, res) => {
       return res.status(415).json(createErrorResponse(415, 'Invalid content type'));
     }
 
-    const { type } = contentType.parse(req);
+    // const { type } = contentType.parse(req);
+    const type = req.get('Content-Type');
     if (!Fragment.isSupportedType(type)) {
       logger.warn(`Unsupported content type: ${type}`);
       return res.status(415).json(createErrorResponse(415, `Unsupported content type: ${type}`));
@@ -21,7 +21,7 @@ module.exports = async (req, res) => {
     await fragment.save();
     await fragment.setData(req.body);
 
-    const location = `${process.env.API_URL || `http://${req.headers.host}`}/fragments/${fragment.id}`;
+    const location = `${process.env.API_URL || `http://${req.headers.host}`}/v1/fragments/${fragment.id}`;
     logger.info(`Fragment created: ${fragment.id}`);
 
     res.status(201).location(location).json(createSuccessResponse({ fragment }));
