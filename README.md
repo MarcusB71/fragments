@@ -41,3 +41,8 @@ use curl to create post request and replace localhost if not local
 
 curl -i -u user1@email.com:password1 http://localhost:8080/v1/fragments
 use curl to get req fragments
+
+used to run and rebuild multi-layered docker images (dynamodb-local, localstack(s3), and our local image)
+docker compose up --build -d
+
+docker compose down
