@@ -96,13 +96,13 @@ describe('GET /v1/fragments/:id', () => {
     expect(res.statusCode).toBe(200);
     expect(res.text).toBe('Fragment sample');
   });
-  test('returns 500 if there is a server error fetching the fragment', async () => {
+  test('returns 404 if fragment does not exist', async () => {
     const res = await request(app)
       .get(`/v1/fragments/1234121231412`)
       .auth(validUser.email, validUser.password);
 
-    expect(res.statusCode).toBe(500);
-    expect(res.body.error.message).toMatch('Internal Server Error');
+    expect(res.statusCode).toBe(404);
+    expect(res.body.error.message).toMatch('Fragment not found');
   });
 });
 
