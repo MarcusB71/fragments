@@ -38,8 +38,8 @@ COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/package*.json ./
 COPY --from=build /app/. ./
 
-# Set user to node for security
-USER node
+# Set user to node for security (temp root for ECS)
+USER root
 
 # We run our service on port 8080
 EXPOSE 8080
