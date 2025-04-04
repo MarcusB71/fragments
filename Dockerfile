@@ -45,4 +45,4 @@ USER node
 EXPOSE 8080
 
 # Start the container by running our server
-CMD ["npm", "start"]
+CMD ["node", "src/index.js"]
