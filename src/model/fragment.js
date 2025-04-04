@@ -4,7 +4,7 @@
 const { randomUUID } = require('crypto');
 // Use https://www.npmjs.com/package/content-type to create/parse Content-Type headers
 const contentType = require('content-type');
-const logger = require('../logger');
+// const logger = require('../logger');
 // Functions for working with fragment metadata/data using our DB
 const {
   readFragment,
@@ -55,7 +55,17 @@ class Fragment {
    * @returns Promise<Array<Fragment>>
    */
   static async byUser(ownerId, expand = false) {
-    return await listFragments(ownerId, expand);
+    try {
+      const foundFragments = await listFragments(ownerId, expand);
+
+      if (!foundFragments) {
+        throw new Error(`no fragment with provided user was found in database`);
+      }
+
+      return Promise.resolve(foundFragments);
+    } catch (err) {
+      throw err.message;
+    }
   }
 
   /**
@@ -65,11 +75,21 @@ class Fragment {
    * @returns Promise<Fragment>
    */
   static async byId(ownerId, id) {
-    const fragmentData = await readFragment(ownerId, id);
-    if (!fragmentData) {
-      throw new Error(`Fragment with id ${id} not found`);
+    try {
+      const fragment = await readFragment(ownerId, id);
+
+      if (!fragment) {
+        throw new Error(`no fragment with provided id was found in database`);
+      }
+
+      if (fragment instanceof Fragment) {
+        return Promise.resolve(fragment);
+      } else {
+        return Promise.resolve(new Fragment(fragment));
+      }
+    } catch (err) {
+      throw new Error(`error retrieving fragment: ${err.message}`);
     }
-    return new Fragment(fragmentData);
   }
 
   /**
@@ -79,29 +99,44 @@ class Fragment {
    * @returns Promise<void>
    */
   static async delete(ownerId, id) {
-    logger.info(`Deleting fragment id: ${id}`);
-    await deleteFragment(ownerId, id);
+    try {
+      await deleteFragment(ownerId, id);
+      return Promise.resolve();
+    } catch (err) {
+      throw new Error(`error deleting user fragment from database: ${err.message}`);
+    }
   }
-
   /**
    * Saves the current fragment (metadata) to the database
    * @returns Promise<void>
    */
   async save() {
-    this.updated = new Date().toISOString();
-    await writeFragment(this);
-  }
+    try {
+      this.updated = new Date().toISOString();
 
+      await writeFragment(this);
+
+      return Promise.resolve();
+    } catch (err) {
+      throw new Error(`error saving fragment to database: ${err.message}`);
+    }
+  }
   /**
    * Gets the fragment's data from the database
    * @returns Promise<Buffer>
    */
   async getData() {
-    const data = await readFragmentData(this.ownerId, this.id);
-    if (!data) {
-      throw new Error('No data found for this fragment');
+    try {
+      const fragmentData = await readFragmentData(this.ownerId, this.id);
+
+      if (!fragmentData) {
+        throw new Error(`no fragment data was found in database`);
+      }
+
+      return Promise.resolve(fragmentData);
+    } catch (err) {
+      throw new Error(`error retrieving fragment data: ${err.message}`);
     }
-    return data;
   }
 
   /**
@@ -110,14 +145,19 @@ class Fragment {
    * @returns Promise<void>
    */
   async setData(data) {
-    if (data === undefined) {
-      throw new Error('Data must be specified');
+    try {
+      this.updated = new Date().toISOString();
+      this.size = data.length;
+
+      await writeFragmentData(this.ownerId, this.id, data);
+      await this.save();
+
+      return Promise.resolve();
+    } catch (err) {
+      throw new Error(`error setting fragment data in database: ${err.message}`);
     }
-    this.size = data.length;
-    this.updated = new Date().toISOString();
-    await writeFragmentData(this.ownerId, this.id, data);
-    await this.save();
   }
+
   /**
    * Returns the mime type (e.g., without encoding) for the fragment's type:
    * "text/html; charset=utf-8" -> "text/html"
