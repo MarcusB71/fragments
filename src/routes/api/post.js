@@ -4,12 +4,12 @@ const { createSuccessResponse, createErrorResponse } = require('../../response')
 
 module.exports = async (req, res) => {
   try {
+    let body = req.body;
     if (!Buffer.isBuffer(req.body)) {
       logger.warn('Request body is not a buffer');
       return res.status(415).json(createErrorResponse(415, 'Invalid content type'));
     }
 
-    // const { type } = contentType.parse(req);
     const type = req.get('Content-Type');
     if (!Fragment.isSupportedType(type)) {
       logger.warn(`Unsupported content type: ${type}`);
@@ -18,8 +18,8 @@ module.exports = async (req, res) => {
 
     const ownerId = req.user;
     const fragment = new Fragment({ ownerId, type });
-    await fragment.save();
-    await fragment.setData(req.body);
+    await fragment.setData(body);
+    // await fragment.save();
 
     const location = `${process.env.API_URL || `http://${req.headers.host}`}/v1/fragments/${fragment.id}`;
     logger.info(`Fragment created: ${fragment.id}`);
