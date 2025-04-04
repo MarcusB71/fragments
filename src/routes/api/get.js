@@ -24,7 +24,7 @@ const getFragments = async (req, res) => {
     }
   } catch (err) {
     logger.error(`Error fetching fragments for user ${ownerId}: ${err.message}`);
-    res.status(500).json(createErrorResponse(500, 'Internal Server Error'));
+    res.status(404).json(createErrorResponse(404, 'Fragment not found'));
   }
 };
 
@@ -62,7 +62,7 @@ const getFragmentById = async (req, res) => {
     }
   } catch (err) {
     logger.error(`Error fetching fragment ${id} for user ${ownerId}: ${err.message}`);
-    res.status(500).json(createErrorResponse(500, 'Internal Server Error'));
+    res.status(404).json(createErrorResponse(404, 'Fragment not found'));
   }
 };
 
@@ -84,7 +84,7 @@ const getFragmentInfo = async (req, res) => {
     res.status(200).json(createSuccessResponse({ fragment }));
   } catch (err) {
     logger.error(`Error fetching metadata for fragment ${id} for user ${ownerId}: ${err.message}`);
-    res.status(500).json(createErrorResponse(500, 'Internal Server Error'));
+    res.status(404).json(createErrorResponse(404, 'Fragment info not found'));
   }
 };
 
