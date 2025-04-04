@@ -6,14 +6,16 @@
 const express = require('express');
 const rawBody = require('../../raw-body');
 const { getFragments, getFragmentById, getFragmentInfo } = require('./get');
-
+const { deleteFragment } = require('./delete');
 // Create a router on which to mount our API endpoints
 const router = express.Router();
+
+router.post('/fragments', rawBody(), require('./post'));
 
 router.get('/fragments', getFragments);
 router.get('/fragments/:id', getFragmentById);
 router.get('/fragments/:id/info', getFragmentInfo);
 
-router.post('/fragments', rawBody(), require('./post'));
+router.delete('/fragments/:id', deleteFragment);
 
 module.exports = router;
