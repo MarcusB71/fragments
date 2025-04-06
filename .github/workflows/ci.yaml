@@ -15,7 +15,6 @@ on:
       - main
 
 # modifications to .github/workflows/ci.yml
-
 jobs:
   lint:
     name: ESLint
