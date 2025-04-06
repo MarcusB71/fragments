@@ -15,6 +15,7 @@ on:
       - main
 
 # modifications to .github/workflows/ci.yml
+
 jobs:
   lint:
     name: ESLint
@@ -120,10 +121,10 @@ jobs:
         run: npm install
       - name: Build Containers
         run: docker compose up -d
-      - name: Setup Local AWS Resources
         # NOTE: this file needs to be made executable *before* you check into git:
-      - name: make local-aws-setup.sh executable
+      - name: make local-aws-setup.sh
         run: chmod +x ./scripts/local-aws-setup.sh
+      - name: Setup Local AWS Resources
         run: ./scripts/local-aws-setup.sh
       - name: Run Hurl Tests
         run: npm run test:integration
