@@ -123,7 +123,8 @@ jobs:
         run: docker compose up -d
       - name: Setup Local AWS Resources
         # NOTE: this file needs to be made executable *before* you check into git:
-        # $ chmod +x ./scripts/local-aws-setup.sh
+      - name: make local-aws-setup.sh executable
+        run: chmod +x ./scripts/local-aws-setup.sh
         run: ./scripts/local-aws-setup.sh
       - name: Run Hurl Tests
         run: npm run test:integration
