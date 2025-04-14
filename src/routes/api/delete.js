@@ -20,7 +20,7 @@ const deleteFragment = async (req, res) => {
     res.status(200).json(createSuccessResponse(200, 'Fragment successfully deleted'));
   } catch (err) {
     logger.error(`Error fetching fragment ${id} for user ${ownerId}: ${err.message}`);
-    res.status(500).json(createErrorResponse(500, 'Internal Server Error'));
+    res.status(404).json(createErrorResponse(404, 'Internal Server Error'));
   }
 };
 
