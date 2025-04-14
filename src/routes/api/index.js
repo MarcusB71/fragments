@@ -12,6 +12,8 @@ const router = express.Router();
 
 router.post('/fragments', rawBody(), require('./post'));
 
+router.put('/fragments/:id', rawBody(), require('./put'));
+
 router.get('/fragments', getFragments);
 router.get('/fragments/:id', getFragmentById);
 router.get('/fragments/:id/info', getFragmentInfo);
